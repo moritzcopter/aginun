@@ -72,6 +72,14 @@ export const RolesQuery = gql`
   ${RoleSummaryFieldsFragment}
 `;
 
+export const AllRoleIdsQuery = gql`
+  query AllRoleIds {
+    roles {
+      id
+    }
+  }
+`;
+
 export const RoleQuery = gql`
   query Role($roleId: Int!) {
     role(id: $roleId) {

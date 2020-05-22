@@ -1,5 +1,5 @@
 import { apolloClient } from "@/plugins/vue-apollo";
-import { RolesQuery } from "@/GraphQL/roles";
+import { RolesQuery, AllRoleIdsQuery } from "@/GraphQL/roles";
 import throttle from "lodash/throttle";
 import Vue from "vue";
 import {
@@ -11,6 +11,7 @@ import {
 export default {
   state: {
     roles: [],
+    num_roles: 0,
     isLoadingRoles: true,
     paginationLimit: 20, // number of roles loaded at a time. More are loaded on scroll down.
     paginationOffset: 0,
@@ -24,15 +25,18 @@ export default {
   mutations: {
     addRole(state, newRole) {
       state.roles.unshift(newRole);
+      state.num_roles++;
     },
     deleteRole(state, roleID) {
       const roleIndex = state.roles.findIndex(role => role.id === roleID);
       if (roleIndex > -1) {
         state.roles.splice(roleIndex, 1);
       }
+      state.num_roles--;
     },
     addRoles(state, newRoles) {
       state.roles.push.apply(state.roles, newRoles);
+      state.num_roles += newRoles.length;
     },
     editRole(state, newRole) {
       const roleIndex = state.roles.findIndex(role => role.id === newRole.id);
@@ -40,6 +44,9 @@ export default {
     },
     setRoles(state, roles) {
       state.roles = roles;
+    },
+    setRolesCount(state, num_roles) {
+      state.num_roles = num_roles;
     },
     setLoadingState(state, isLoading) {
       state.isLoadingRoles = isLoading;
@@ -148,6 +155,15 @@ export default {
       } else {
         commit("addRoles", newRoles);
       }
+
+      async function roleCount() {
+        const response = await apolloClient.query({
+          query: AllRoleIdsQuery,
+        });
+        return response.data.roles.length;
+      }
+
+      commit("setRolesCount", await roleCount());
 
       if (newRoles.length) {
         scrollState.loaded();

@@ -37,12 +37,19 @@
           <role-card v-for="role in roles" :key="role.id" :role="role" />
         </grid-list>
         <div
-          v-if="!isLoadingRoles && !roles.length"
-          key="noRoles"
+          v-if="!isLoadingRoles && !roles.length && num_roles"
+          key="noRolesAfterFilter"
           class="pa-5 text-center"
         >
           <h3>No results.</h3>
           <p>Try removing filters.</p>
+        </div>
+        <div
+          v-if="!isLoadingRoles && !roles.length && !num_roles"
+          key="noRolesPublished"
+          class="pa-5 text-center"
+        >
+          <p>There are currently no published roles.</p>
         </div>
       </transition>
       <infinite-loading
@@ -122,6 +129,7 @@ export default {
   computed: {
     ...mapState("roles", [
       "roles",
+      "num_roles",
       "isLoadingRoles",
       "infiniteScrollIdentifier",
     ]),
