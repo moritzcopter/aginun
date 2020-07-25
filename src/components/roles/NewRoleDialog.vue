@@ -1,11 +1,12 @@
 <template>
-  <!-- TODO: This is very similar (almost the same) as the create, at this point it would be nice if we could get a generic solution for this.
-        Will have to look into this once we will implement the tasks.-->
   <v-dialog :value="value" width="600px" @input="$emit('input', false)">
     <v-card class="pa-4">
-      <h2>Edit role</h2>
+      <h2>New role</h2>
       <validation-observer ref="form" v-slot="{ invalid, handleSubmit }">
-        <form @submit.prevent="handleSubmit(onEditRole)" @keydown.enter.prevent>
+        <form
+          @submit.prevent="handleSubmit(publishRole)"
+          @keypress.enter.prevent
+        >
           <validation-provider
             v-slot="{ errors }"
             rules="required|alpha_spaces|max:30"
@@ -274,7 +275,7 @@ let initialState = () => ({
 });
 
 export default {
-  name: "RoleEditDialog",
+  name: "NewRoleDialog",
   components: {
     ValidationProvider,
     ValidationObserver,
@@ -284,19 +285,8 @@ export default {
       required: true,
       type: Boolean,
     },
-    role: {
-      required: true,
-      type: Object,
-    },
   },
   data: () => initialState(),
-  created: function() {
-    //   This feels a little dangerous, find a cleaner way
-    const keys = Object.keys(this.role);
-    keys.forEach(value => (this[value] = this.role[value]));
-    this.workingCircleId = this.role.workingCircle.id;
-    this.localGroupId = this.role.localGroup.id;
-  },
   computed: {
     ...mapState("defaults", ["timeCommitments"]),
     ...mapState("groups", ["localGroups"]),
@@ -318,7 +308,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("roles", ["updateRole"]),
+    ...mapActions("roles", ["createRole"]),
     addResponsibility: function() {
       if (this.validResponsibility) {
         this.responsibilities.push(this.newResponsibility);
@@ -332,14 +322,15 @@ export default {
     resetState: function() {
       Object.assign(this.$data, initialState());
     },
-    onEditRole: function() {
+    publishRole: function() {
       const role = JSON.parse(JSON.stringify(this.$data));
       delete role["newResponsibility"];
       delete role["$apolloData"];
 
-      this.updateRole({ id: this.role.id, ...role });
+      this.createRole(role);
 
       this.$emit("input", false);
+      this.resetState();
 
       this.$nextTick(() => {
         this.$refs.form.reset();
